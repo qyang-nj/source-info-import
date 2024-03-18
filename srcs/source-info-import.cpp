@@ -29,10 +29,10 @@ using namespace llvm::support;
                           __LINE__)
 
 static cl::OptionCategory DefaultCategory("Basic Options");
-static cl::opt<std::string> InputFilename(cl::Positional, cl::desc("<src>"), cl::init("-"),
+static cl::opt<std::string> InputFilename(cl::Positional, cl::desc("<input swiftsourceinfo>"),
                                           cl::cat(DefaultCategory));
-static cl::opt<std::string> OutputFilename(cl::Positional, cl::desc("<dst>"), cl::init("-"),
-                                           cl::cat(DefaultCategory));
+static cl::opt<std::string> OutputFilename(cl::Positional, cl::desc("[<output swiftsourceinfo>]"),
+                                           cl::Optional, cl::cat(DefaultCategory));
 static cl::list<std::string> PathRemaps("remap", cl::desc("Path remapping substitution."),
                                         cl::value_desc("regex=replacement"),
                                         cl::cat(DefaultCategory));
@@ -220,6 +220,9 @@ int main(int argc, char **argv) {
 
   ExitOnError ExitOnErr("source-info-import: ");
 
+  if (InputFilename == "")
+    ExitOnErr(createStringError(std::errc::invalid_argument, "The input file is required."));
+
   std::unique_ptr<MemoryBuffer> MB = ExitOnErr(openBitcodeFile(InputFilename));
   llvm::BitstreamCursor Cursor{MB.get()->getMemBufferRef()};
 
@@ -243,7 +246,7 @@ int main(int argc, char **argv) {
       FPathRemapper.addRemap(re, replacement);
     }
 
-    if (OutputFilename == "-") {
+    if (OutputFilename == "") {
       ExitOnErr(createStringError(std::errc::invalid_argument,
                                   "The destination file is required when --remap is specified."));
     }
