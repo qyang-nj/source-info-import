@@ -1,2 +1,2 @@
 # source-info-import
-Utility to import and inspect .swiftsourceinfo file
+A tool to inspect `.swiftsourceinfo` file and remap the absolute paths in it.
