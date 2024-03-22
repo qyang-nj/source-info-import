@@ -41,7 +41,7 @@ class FileIDRemapper {
 public:
   FileIDRemapper(FilePathRemapper &PathRemapper) : PathRemapper(PathRemapper) {}
 
-  uint32_t mapFileID(uint32_t FileID, StringRef TextDataData, bool Quiet = false) {
+  uint32_t mapFileID(uint32_t FileID, StringRef TextDataData, bool Quiet) {
     if (IndexMap.count(FileID) == 0) {
       IndexMap[FileID] = Buffer.size();
 

@@ -1,5 +1,7 @@
 .vscode
 
+/*.swiftsourceinfo
+
 # The binary
 source-info-import
 source-info-import.dSYM

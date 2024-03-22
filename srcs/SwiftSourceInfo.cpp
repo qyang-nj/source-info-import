@@ -70,7 +70,7 @@ void SwiftSourceInfo::remapFilePath(FileIDRemapper &FIDRemapper, bool Quiet) {
   auto *End = NewSourceFileListData.bytes_end();
   while (Cursor < End) {
     auto *Record = reinterpret_cast<SourceFileRecord *>(const_cast<unsigned char *>(Cursor));
-    Record->FileID = FIDRemapper.mapFileID(Record->FileID, TextDataData);
+    Record->FileID = FIDRemapper.mapFileID(Record->FileID, TextDataData, Quiet);
     Cursor += sizeof(SourceFileRecord);
   }
   SourceFileListData = NewSourceFileListData;
@@ -81,10 +81,10 @@ void SwiftSourceInfo::remapFilePath(FileIDRemapper &FIDRemapper, bool Quiet) {
   End = NewBasicDeclLocsData.bytes_end();
   while (Cursor < End) {
     auto *Record = reinterpret_cast<DeclLocRecord *>(const_cast<unsigned char *>(Cursor));
-    Record->FileID = FIDRemapper.mapFileID(Record->FileID, TextDataData);
+    Record->FileID = FIDRemapper.mapFileID(Record->FileID, TextDataData, Quiet);
 
     for (int i = 0; i < 3; i++) {
-      Record->Locs[i].FileID = FIDRemapper.mapFileID(Record->Locs[i].FileID, TextDataData);
+      Record->Locs[i].FileID = FIDRemapper.mapFileID(Record->Locs[i].FileID, TextDataData, Quiet);
     }
     Cursor += sizeof(DeclLocRecord);
   }

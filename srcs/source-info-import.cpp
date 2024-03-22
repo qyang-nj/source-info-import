@@ -38,13 +38,11 @@ static cl::list<std::string> PathRemaps("remap", cl::desc("Path remapping substi
                                         cl::cat(DefaultCategory));
 static cl::opt<bool> Quiet("quiet", cl::desc("Suppress any output"), cl::init(false),
                            cl::cat(DefaultCategory));
-static cl::opt<bool, true> Debug("debug", cl::desc("Enable debug output"), cl::Hidden,
-                                 cl::location(DebugFlag));
 
 static bool checkMagicNumber(BitstreamCursor &cursor) {
   for (unsigned char byte : SWIFTSOURCEINFO_SIGNATURE) {
     Expected<SimpleBitstreamCursor::word_t> maybeRead = cursor.Read(8);
-    if (maybeRead.get() != byte) {
+    if (maybeRead && maybeRead.get() != byte) {
       return false;
     }
   }
