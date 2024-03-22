@@ -1,4 +1,5 @@
 #!/bin/zsh
+set -e
 
 # The path of LLVM build directory
 LLVM_BUILD_DIR="$HOME/OpenSource/swift-project/build/Ninja-ReleaseAssert/llvm-macosx-arm64"
@@ -12,3 +13,5 @@ xcrun clang++ ${RELEASE_FLAGS[@]} \
     -lcurses \
     srcs/source-info-import.cpp \
     srcs/SwiftSourceInfo.cpp
+
+zip -r source-info-import_macos-$(arch).zip source-info-import
