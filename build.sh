@@ -14,4 +14,9 @@ xcrun clang++ ${RELEASE_FLAGS[@]} \
     srcs/source-info-import.cpp \
     srcs/SwiftSourceInfo.cpp
 
-zip -r source-info-import_macos-$(arch).zip source-info-import
+ZIP_FILE=source-info-import_macos-$(arch).zip
+zip $ZIP_FILE source-info-import
+
+if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum $ZIP_FILE
+fi
