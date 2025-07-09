@@ -5,6 +5,8 @@
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/Path.h"
 
+using namespace swift::serialization;
+
 // Allocate new memory for the given data and store the pointer to prevent the memory from being
 // freed.
 static StringRef duplicateData(StringRef Data,
@@ -36,10 +38,23 @@ static void printSourceListInfo(StringRef SourceFileListData, StringRef TextData
   }
 }
 
+// Copied from lib/Serialization/ModuleFileSharedCore.cpp
+static std::unique_ptr<ModuleFileSharedCore::SerializedDeclUSRTable>
+  readDeclUSRsTable(ArrayRef<uint64_t> fields, StringRef blobData) {
+  if (fields.empty() || blobData.empty())
+    return nullptr;
+
+  uint32_t tableOffset = static_cast<uint32_t>(fields.front());
+  auto base = reinterpret_cast<const uint8_t *>(blobData.data());
+  return std::unique_ptr<ModuleFileSharedCore::SerializedDeclUSRTable>(
+    ModuleFileSharedCore::SerializedDeclUSRTable::Create(base + tableOffset, base + sizeof(uint32_t), base)
+  );
+}
+
 static void printUSRInfo(std::pair<SmallVector<uint64_t>, StringRef> DeclUSRsData,
                          StringRef BasicDeclLocsData, StringRef TextDataData) {
-  std::unique_ptr<SerializedDeclUSRTable> DeclUSRsTable =
-      readDeclUSRsTable(DeclUSRsData.first, DeclUSRsData.second);
+  std::unique_ptr<ModuleFileSharedCore::SerializedDeclUSRTable> DeclUSRsTable =
+    readDeclUSRsTable(DeclUSRsData.first, DeclUSRsData.second);
 
   for (const auto &key : DeclUSRsTable->keys()) {
     auto Val = DeclUSRsTable->find(key);

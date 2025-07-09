@@ -2,7 +2,7 @@
 set -e
 
 # The path of LLVM build directory
-LLVM_BUILD_DIR="$HOME/OpenSource/swift-project/build/Ninja-ReleaseAssert/llvm-macosx-arm64"
+LLVM_BUILD_DIR="$HOME/OpenSource/SwiftProject/build/Ninja-ReleaseAssert/llvm-macosx-arm64"
 
 DEBUG_FLAGS=(-g -O0)
 RELEASE_FLAGS=(-O3 -DNDEBUG)

@@ -7,7 +7,11 @@
 #include "llvm/Support/DJB.h"
 #include "llvm/Support/OnDiskHashTable.h"
 
-namespace {
+using namespace llvm;
+
+namespace swift {
+namespace serialization {
+
 // Magic number for serialized source info files.
 // Copied from swift/lib/Serialization/SourceInfoFormat.h
 const unsigned char SWIFTSOURCEINFO_SIGNATURE[] = {0xF0, 0x9F, 0x8F, 0x8E};
@@ -59,8 +63,23 @@ struct __attribute__((packed)) DocRangeRecord {
   uint32_t Skipped;
 };
 
-// Copied from swift/lib/Serialization/ModuleFileSharedCore.h
-class DeclUSRTableInfo {
+
+// Copied from swift/lib/Serialization/SerializationFormat.h
+template <typename value_type, typename CharT>
+[[nodiscard]] inline value_type readNext(const CharT *&memory) {
+  return llvm::support::endian::readNext<value_type, llvm::endianness::little, llvm::support::unaligned>(memory);
+}
+
+// Extracted from swift/lib/Serialization/ModuleFileSharedCore.h
+class ModuleFileSharedCore {
+public:
+  class DeclUSRTableInfo;
+
+  using SerializedDeclUSRTable = llvm::OnDiskIterableChainedHashTable<DeclUSRTableInfo>;
+};
+
+// Copied from swift/lib/Serialization/ModuleFileCoreTableInfo.h
+class ModuleFileSharedCore::DeclUSRTableInfo {
 public:
   using internal_key_type = StringRef;
   using external_key_type = StringRef;
@@ -74,42 +93,31 @@ public:
 
   hash_value_type ComputeHash(internal_key_type key) {
     assert(!key.empty());
-    return llvm::djbHash(key, SWIFTSOURCEINFO_HASH_SEED);
+    return llvm::djbHash(key, serialization::SWIFTSOURCEINFO_HASH_SEED);
   }
 
-  static bool EqualKey(internal_key_type lhs, internal_key_type rhs) { return lhs == rhs; }
+  static bool EqualKey(internal_key_type lhs, internal_key_type rhs) {
+    return lhs == rhs;
+  }
 
   static std::pair<unsigned, unsigned> ReadKeyDataLength(const uint8_t *&data) {
-    using namespace llvm::support;
-    unsigned keyLength = endian::readNext<uint32_t, little, unaligned>(data);
+    unsigned keyLength = readNext<uint32_t>(data);
     unsigned dataLength = 4;
-    return {keyLength, dataLength};
+    return { keyLength, dataLength };
   }
 
   static internal_key_type ReadKey(const uint8_t *data, unsigned length) {
-    return StringRef(reinterpret_cast<const char *>(data), length);
+    return StringRef(reinterpret_cast<const char*>(data), length);
   }
 
-  data_type ReadData(internal_key_type key, const uint8_t *data, unsigned length) {
-    using namespace llvm::support;
+  data_type ReadData(internal_key_type key, const uint8_t *data,
+                     unsigned length) {
     assert(length == 4);
-    return endian::readNext<uint32_t, little, unaligned>(data);
+    return readNext<uint32_t>(data);
   }
 };
 
-// Copied from swift/lib/Serialization/ModuleFileSharedCore.h
-using SerializedDeclUSRTable = llvm::OnDiskIterableChainedHashTable<DeclUSRTableInfo>;
-
-// Copied from swift/lib/Serialization/ModuleFileSharedCore.h
-std::unique_ptr<SerializedDeclUSRTable> readDeclUSRsTable(ArrayRef<uint64_t> fields,
-                                                          StringRef blobData) {
-  if (fields.empty() || blobData.empty())
-    return nullptr;
-  uint32_t tableOffset = static_cast<uint32_t>(fields.front());
-  auto base = reinterpret_cast<const uint8_t *>(blobData.data());
-  return std::unique_ptr<SerializedDeclUSRTable>(
-      SerializedDeclUSRTable::Create(base + tableOffset, base + sizeof(uint32_t), base));
-}
-} // namespace
+} // end namespace serialization
+} // end namespace swift
 
 #endif // SWIFT_INTERNALS_H
