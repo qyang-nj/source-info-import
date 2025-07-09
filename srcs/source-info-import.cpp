@@ -16,6 +16,7 @@
 
 using namespace llvm;
 using namespace llvm::support;
+using namespace swift::serialization;
 
 #define DEBUG_TYPE "debug"
 
