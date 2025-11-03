@@ -20,7 +20,7 @@ public:
     for (const auto &remap : Remaps) {
       const auto &pattern = remap.first;
       const auto &replacement = remap.second;
-      result = std::regex_replace(input.str(), pattern, replacement);
+      result = std::regex_replace(result, pattern, replacement);
     }
 
     return result;
